@@ -136,6 +136,18 @@ impl SelectedLayerState {
 		}
 	}
 
+	/// Returns selected points plus the anchor endpoints of any selected segments.
+	pub fn affected_points(&self, vector: &Vector) -> HashSet<ManipulatorPointId> {
+		let mut affected_points = self.selected_points.clone();
+		for (segment_id, _, start, end) in vector.segment_bezier_iter() {
+			if self.selected_segments.contains(&segment_id) {
+				affected_points.insert(ManipulatorPointId::Anchor(start));
+				affected_points.insert(ManipulatorPointId::Anchor(end));
+			}
+		}
+		affected_points
+	}
+
 	pub fn ignore_anchors(&mut self, status: bool) {
 		if self.ignore_anchors != status {
 			return;
