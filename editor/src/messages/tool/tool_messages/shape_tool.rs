@@ -151,6 +151,7 @@ fn create_turns_widget(turns: f64) -> WidgetInstance {
 }
 
 fn create_shape_option_widget(shape_type: ShapeType) -> WidgetInstance {
+	// Line, Rectangle, and Ellipse have dedicated tools, so they're excluded from this dropdown
 	let entries = vec![vec![
 		MenuListEntry::new("Polygon").label("Polygon").on_commit(move |_| {
 			ShapeToolMessage::UpdateOptions {
@@ -188,32 +189,20 @@ fn create_shape_option_widget(shape_type: ShapeType) -> WidgetInstance {
 			}
 			.into()
 		}),
-		MenuListEntry::new("Rectangle").label("Rectangle").on_commit(move |_| {
-			ShapeToolMessage::UpdateOptions {
-				options: ShapeOptionsUpdate::ShapeType(ShapeType::Rectangle),
-			}
-			.into()
-		}),
-		MenuListEntry::new("Ellipse").label("Ellipse").on_commit(move |_| {
-			ShapeToolMessage::UpdateOptions {
-				options: ShapeOptionsUpdate::ShapeType(ShapeType::Ellipse),
-			}
-			.into()
-		}),
 		MenuListEntry::new("Arrow").label("Arrow").on_commit(move |_| {
 			ShapeToolMessage::UpdateOptions {
 				options: ShapeOptionsUpdate::ShapeType(ShapeType::Arrow),
 			}
 			.into()
 		}),
-		MenuListEntry::new("Line").label("Line").on_commit(move |_| {
-			ShapeToolMessage::UpdateOptions {
-				options: ShapeOptionsUpdate::ShapeType(ShapeType::Line),
-			}
-			.into()
-		}),
 	]];
-	DropdownInput::new(entries).selected_index(Some(shape_type as u32)).widget_instance()
+	// Line, Rectangle, Ellipse have dedicated tools (and higher enum values), so shape_type as u32 works for the rest
+	let selected_index = if matches!(shape_type, ShapeType::Line | ShapeType::Rectangle | ShapeType::Ellipse) {
+		Some(0) // Default to Polygon if somehow one of these is selected
+	} else {
+		Some(shape_type as u32)
+	};
+	DropdownInput::new(entries).selected_index(selected_index).widget_instance()
 }
 
 fn create_arc_type_widget(arc_type: ArcType) -> WidgetInstance {
