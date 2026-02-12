@@ -33,6 +33,7 @@ pub enum ShapeType {
 	Spiral,
 	Grid,
 	Arrow,
+
 	// These have dedicated tools and don't appear in the Shape tool's dropdown
 	Line,
 	Rectangle,
