@@ -365,11 +365,30 @@ impl NodeRuntime {
 							let surface_texture = surface_inner.get_current_texture().expect("Failed to get surface texture");
 							self.current_viewport_texture = Some(image_texture.clone());
 
-							// Use the blitter to copy the texture to the surface, handling format conversion
-							// (e.g., Rgba8Unorm source to Bgra8Unorm surface on Firefox)
-							let source_view = image_texture.texture.create_view(&vello::wgpu::TextureViewDescriptor::default());
-							let target_view = surface_texture.texture.create_view(&vello::wgpu::TextureViewDescriptor::default());
-							surface.surface.blitter.copy(&executor.context.device, &mut encoder, &source_view, &target_view);
+							// Only use the blitter if formats differ, otherwise use efficient direct copy
+							if surface.surface.format == vello::wgpu::TextureFormat::Rgba8Unorm {
+								// Same format as Vello's output - use direct texture copy
+								encoder.copy_texture_to_texture(
+									vello::wgpu::TexelCopyTextureInfoBase {
+										texture: image_texture.texture.as_ref(),
+										mip_level: 0,
+										origin: Default::default(),
+										aspect: Default::default(),
+									},
+									vello::wgpu::TexelCopyTextureInfoBase {
+										texture: &surface_texture.texture,
+										mip_level: 0,
+										origin: Default::default(),
+										aspect: Default::default(),
+									},
+									image_texture.texture.size(),
+								);
+							} else {
+								// Different format (e.g., Firefox's Bgra8Unorm on Mac) - use blitter for conversion
+								let source_view = image_texture.texture.create_view(&vello::wgpu::TextureViewDescriptor::default());
+								let target_view = surface_texture.texture.create_view(&vello::wgpu::TextureViewDescriptor::default());
+								surface.surface.blitter.copy(&executor.context.device, &mut encoder, &source_view, &target_view);
+							}
 
 							executor.context.queue.submit([encoder.finish()]);
 							surface_texture.present();
