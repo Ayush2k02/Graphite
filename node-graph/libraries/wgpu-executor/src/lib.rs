@@ -174,9 +174,9 @@ impl WgpuExecutor {
 	}
 
 	pub fn create_surface_inner(&self, surface: wgpu::Surface<'static>, window_id: SurfaceId) -> Result<SurfaceHandle<Surface>> {
-		// Get the surface's preferred format (Firefox WebGL may prefer Bgra8Unorm, Chrome prefers Rgba8Unorm)
+		// Use the surface's preferred format (Firefox prefers Bgra8Unorm, Chrome prefers Rgba8Unorm)
 		let surface_caps = surface.get_capabilities(&self.context.adapter);
-		let surface_format = surface_caps.formats.iter().copied().find(|f| f.is_srgb()).unwrap_or(surface_caps.formats[0]);
+		let surface_format = surface_caps.formats[0];
 		let blitter = TextureBlitter::new(&self.context.device, surface_format);
 		Ok(SurfaceHandle {
 			window_id,
