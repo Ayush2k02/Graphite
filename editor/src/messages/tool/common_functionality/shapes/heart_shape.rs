@@ -5,7 +5,6 @@ use crate::messages::portfolio::document::utility_types::document_metadata::Laye
 use crate::messages::portfolio::document::utility_types::network_interface::{InputConnector, NodeTemplate};
 use crate::messages::prelude::{DocumentMessageHandler, InputPreprocessorMessageHandler};
 use crate::messages::tool::common_functionality::graph_modification_utils;
-use crate::messages::tool::common_functionality::resize::viewport_zoom;
 use crate::messages::tool::common_functionality::shapes::shape_utility::ShapeToolModifierKey;
 use crate::messages::tool::tool_messages::shape_tool::ShapeToolData;
 use crate::messages::tool::tool_messages::tool_prelude::*;
