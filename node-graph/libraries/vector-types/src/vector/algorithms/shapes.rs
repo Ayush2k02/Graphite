@@ -189,7 +189,7 @@ pub fn star_polygon_bezpath(center: DVec2, sides: u64, radius: f64, inner_radius
 pub struct HeartProportions {
 	/// How far the top V dips below the upper bound of the heart.
 	pub cleavage_depth: f64,
-	/// Half-angle of the top V. Zero produces a needle-sharp notch with vertical tangents; larger angles open it into a smooth join.
+	/// Half-angle of the top V. Zero collapses the V into a smooth join.
 	pub cleavage_angle: f64,
 	/// Tangent length leaving the top cusp, controlling the upper roundness of each lobe.
 	pub lobe_fullness: f64,
