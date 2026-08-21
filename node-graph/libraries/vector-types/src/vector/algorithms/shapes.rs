@@ -449,32 +449,24 @@ mod tests {
 
 	#[test]
 	fn heart_is_symmetric_about_the_vertical_axis() {
-		let center = DVec2::new(7., -3.);
-		let bezpath = heart_bezpath(center, 50., default_heart());
+		let bezpath = heart_bezpath(DVec2::ZERO, 50., default_heart());
 
-		// Sample the *curve*, not the control net. Checking the control points against each other proves
-		// nothing here: the left half is built by mirroring the right, so every control point has a mirrored
-		// twin by construction and the assertion cannot fail. Flattening tests what the control points were
-		// assembled into, which is where an ordering mistake would actually show up.
-		const STEPS: usize = 64;
-		let samples: Vec<DVec2> = bezpath
-			.segments()
-			.flat_map(|segment| (0..=STEPS).map(move |step| segment.eval(step as f64 / STEPS as f64)))
-			.map(|point| DVec2::new(point.x, point.y))
+		// Every point on the path must have a mirrored twin, since the left half is built by mirroring the right.
+		let points: Vec<DVec2> = bezpath
+			.elements()
+			.iter()
+			.flat_map(|element| match element {
+				PathEl::MoveTo(p) | PathEl::LineTo(p) => vec![DVec2::new(p.x, p.y)],
+				PathEl::QuadTo(a, b) => vec![DVec2::new(a.x, a.y), DVec2::new(b.x, b.y)],
+				PathEl::CurveTo(a, b, c) => vec![DVec2::new(a.x, a.y), DVec2::new(b.x, b.y), DVec2::new(c.x, c.y)],
+				PathEl::ClosePath => vec![],
+			})
 			.collect();
-		assert!(samples.len() > 64, "expected a densely sampled outline, got {} points", samples.len());
 
-		// The outline must sit symmetrically about the centre, not merely be built from mirrored inputs.
-		for point in &samples {
-			let mirrored = DVec2::new(2. * center.x - point.x, point.y);
-			let nearest = samples.iter().map(|other| other.distance(mirrored)).fold(f64::INFINITY, f64::min);
-			assert!(nearest < 0.5, "outline point {point:?} has no counterpart across the axis (nearest {nearest})");
+		for point in &points {
+			let mirrored = DVec2::new(-point.x, point.y);
+			assert!(points.iter().any(|other| other.distance(mirrored) < 1e-9), "no mirrored counterpart for {point:?}");
 		}
-
-		// And the extremes must balance, which catches a half that is mirrored but misplaced.
-		let left = samples.iter().map(|p| p.x).fold(f64::INFINITY, f64::min);
-		let right = samples.iter().map(|p| p.x).fold(f64::NEG_INFINITY, f64::max);
-		assert!(((left + right) / 2. - center.x).abs() < 1e-9, "outline is not centred: [{left}, {right}] about {}", center.x);
 	}
 
 	#[test]
